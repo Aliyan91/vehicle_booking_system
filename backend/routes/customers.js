@@ -1,39 +1,73 @@
-const express = require('express');
-const Customer = require('../models/Customer');
-const auth = require('../middleware/auth');
+import express from 'express';
+import { PrismaClient } from '@prisma/client';
+import auth from '../middleware/auth.js';
+
+const prisma = new PrismaClient();
 const router = express.Router();
 
 router.use(auth);
 
 router.get('/', async (req, res) => {
-  const customers = await Customer.find().sort('-createdAt');
-  res.json(customers);
+  try {
+    const customers = await prisma.customer.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(customers);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching customers', error: err.message });
+  }
 });
 
 router.get('/:id', async (req, res) => {
-  const customer = await Customer.findById(req.params.id);
-  if (!customer) return res.status(404).json({ message: 'Not found' });
-  res.json(customer);
+  try {
+    const customer = await prisma.customer.findUnique({
+      where: { id: req.params.id }
+    });
+    if (!customer) return res.status(404).json({ message: 'Not found' });
+    res.json(customer);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching customer', error: err.message });
+  }
 });
 
 router.post('/', async (req, res) => {
-  const { name, email, phone, address } = req.body;
-  const existing = await Customer.findOne({ email });
-  if (existing) return res.status(400).json({ message: 'Customer already exists' });
-  const customer = await Customer.create({ name, email, phone, address });
-  res.status(201).json(customer);
+  try {
+    const { name, email, phone, address } = req.body;
+    const existing = await prisma.customer.findUnique({ where: { email } });
+    if (existing) return res.status(400).json({ message: 'Customer already exists' });
+
+    const customer = await prisma.customer.create({
+      data: { name, email, phone, address }
+    });
+    res.status(201).json(customer);
+  } catch (err) {
+    res.status(500).json({ message: 'Error creating customer', error: err.message });
+  }
 });
 
 router.put('/:id', async (req, res) => {
-  const updated = await Customer.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-  if (!updated) return res.status(404).json({ message: 'Not found' });
-  res.json(updated);
+  try {
+    const updated = await prisma.customer.update({
+      where: { id: req.params.id },
+      data: req.body
+    });
+    res.json(updated);
+  } catch (err) {
+    if (err.code === 'P2025') return res.status(404).json({ message: 'Not found' });
+    res.status(500).json({ message: 'Error updating customer', error: err.message });
+  }
 });
 
 router.delete('/:id', async (req, res) => {
-  const deleted = await Customer.findByIdAndDelete(req.params.id);
-  if (!deleted) return res.status(404).json({ message: 'Not found' });
-  res.json({ message: 'Customer deleted' });
+  try {
+    await prisma.customer.delete({
+      where: { id: req.params.id }
+    });
+    res.json({ message: 'Customer deleted' });
+  } catch (err) {
+    if (err.code === 'P2025') return res.status(404).json({ message: 'Not found' });
+    res.status(500).json({ message: 'Error deleting customer', error: err.message });
+  }
 });
 
-module.exports = router;
+export default router;

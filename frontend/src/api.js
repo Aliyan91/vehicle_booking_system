@@ -50,3 +50,38 @@ export async function createBooking(data) {
   const res = await axios.post(`${API_URL}/api/bookings`, data, { headers: authHeaders() });
   return res.data;
 }
+
+export async function updateCustomer(id, data) {
+  const res = await axios.put(`${API_URL}/api/customers/${id}`, data, { headers: authHeaders() });
+  return res.data;
+}
+
+export async function deleteCustomer(id) {
+  const res = await axios.delete(`${API_URL}/api/customers/${id}`, { headers: authHeaders() });
+  return res.data;
+}
+
+export async function updateVehicle(id, data) {
+  const res = await axios.put(`${API_URL}/api/vehicles/${id}`, data, { headers: authHeaders() });
+  return res.data;
+}
+
+export async function deleteVehicle(id) {
+  const res = await axios.delete(`${API_URL}/api/vehicles/${id}`, { headers: authHeaders() });
+  return res.data;
+}
+
+export async function toggleVehicleAvailability(id, isAvailable) {
+  const res = await axios.put(`${API_URL}/api/vehicles/${id}`, { isAvailable }, { headers: authHeaders() });
+  return res.data;
+}
+
+export async function updateBooking(id, data) {
+  const res = await axios.put(`${API_URL}/api/bookings/${id}`, data, { headers: authHeaders() });
+  return res.data;
+}
+
+export async function deleteBooking(id) {
+  const res = await axios.delete(`${API_URL}/api/bookings/${id}`, { headers: authHeaders() });
+  return res.data;
+}

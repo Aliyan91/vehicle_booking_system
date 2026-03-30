@@ -1,20 +1,28 @@
-const express = require('express');
-const Booking = require('../models/Booking');
-const Customer = require('../models/Customer');
-const Vehicle = require('../models/Vehicle');
-const auth = require('../middleware/auth');
+import express from 'express';
+import { PrismaClient } from '@prisma/client';
+import auth from '../middleware/auth.js';
+
+const prisma = new PrismaClient();
 const router = express.Router();
 
 router.use(auth);
 
 router.get('/', async (req, res) => {
-  const totalBookings = await Booking.countDocuments();
-  const totalCustomers = await Customer.countDocuments();
-  const totalVehicles = await Vehicle.countDocuments();
-  const revenueAgg = await Booking.aggregate([{ $group: { _id: null, revenue: { $sum: '$totalAmount' } } }]);
-  const revenue = revenueAgg.length ? revenueAgg[0].revenue : 0;
+  try {
+    const totalBookings = await prisma.booking.count();
+    const totalCustomers = await prisma.customer.count();
+    const totalVehicles = await prisma.vehicle.count();
 
-  res.json({ totalBookings, totalCustomers, totalVehicles, revenue });
+    const bookingData = await prisma.booking.aggregate({
+      _sum: { totalAmount: true }
+    });
+
+    const revenue = bookingData._sum.totalAmount || 0;
+
+    res.json({ totalBookings, totalCustomers, totalVehicles, revenue });
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching dashboard data', error: err.message });
+  }
 });
 
-module.exports = router;
+export default router;

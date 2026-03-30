@@ -1,19 +1,21 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const connectDB = require('./config/db');
-
-connectDB();
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import authRoutes from './routes/auth.js';
+import customersRoutes from './routes/customers.js';
+import vehiclesRoutes from './routes/vehicles.js';
+import bookingsRoutes from './routes/bookings.js';
+import dashboardRoutes from './routes/dashboard.js';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/customers', require('./routes/customers'));
-app.use('/api/vehicles', require('./routes/vehicles'));
-app.use('/api/bookings', require('./routes/bookings'));
-app.use('/api/dashboard', require('./routes/dashboard'));
+app.use('/api/auth', authRoutes);
+app.use('/api/customers', customersRoutes);
+app.use('/api/vehicles', vehiclesRoutes);
+app.use('/api/bookings', bookingsRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 app.get('/', (req, res) => res.json({ message: 'Vehicle booking API running' }));
 
